@@ -1,0 +1,697 @@
+<HTML>
+<HEAD>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Begin
+var gmark=1
+var timerId=null
+var timer = new Array()
+var dude = new Array()
+var team = new Array()
+var cball = "O"
+var idball = 1
+var cedge = "e"
+var idedge = 2
+var cgoal1 = "."
+var idgoal1 = 3
+var cgoal2 = "."
+var idgoal2 = 4
+var cempty = " "
+var idempty = 0
+// a=65,s=83,d=68,f=70
+// w=87 e=69
+// l=76, ö=192 ä=222 '=191
+// p=80 å=221
+var l1 = 83
+var r1 = 68
+var t1 = 69
+var p1 = 87
+var ll1 = 65
+var rr1 = 70
+var l2 = 192
+var r2 = 222
+var t2 = 221
+var p2 = 80
+var ll2 = 76
+var rr2 = 191
+var left = 1
+var right = 2
+var normal = 1
+var strafe = 2
+
+var bwidth = 79
+var bheight = 59
+
+var maxdude=4
+var lastdude=0
+var board = new Array()
+
+function ballObject(){
+	this.dx=0
+	this.dy=0
+}
+function boardCell(id){
+	this.id=id
+}
+
+function drawdude(d){    
+        putplace(dude[d].lx, dude[d].ly, dude[d].lfoot, dude[d].id)
+        putdude(dude[d].lx, dude[d].ly, dude[d].lfoot, dude[d].id)
+}
+function drawfield()
+{
+        for (i = 2;i < bwidth - 1;i++)
+        {
+                putplace(2, i, cedge, idedge)
+                putplace(bheight - 1, i, cedge, idedge)
+        }
+        for (i = 2;i < bheight - 1;i++)
+	  {
+                putplace(i, 2, cedge, idedge)
+                putplace(i, bwidth - 1, cedge, idedge)
+        }
+        for (i = (bheight + 1) / 2 - 8;i<(bheight + 1) / 2 + 8;i++)
+        {
+                putplace(i, 2, cgoal1, idgoal1)
+                putplace(i, bwidth - 1, cgoal2, idgoal2)
+        }
+	document.foot.goals.value = "        "+team[2].goals+" - "+team[1].goals
+        
+}
+
+function dudeObject(team,id){
+	  this.team = team
+        this.id = id 
+}
+function dudepic(d,pic)
+{
+     putdude(-20, -20, dude[d].lfoot, dude[d].id)
+     if (d>lastdude){
+	     dude[d].lfoot=pic+(d+maxdude-lastdude)
+	} else {
+	     dude[d].lfoot=pic+d
+	}
+     putdude(dude[d].lx, dude[d].ly, dude[d].lfoot, dude[d].id)
+}
+
+function dudepics(dudenr,team){
+    with (document) {
+     write("<input ID=nn"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/nn"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=nn"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/nn"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=ne"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/ne"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=nw"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/nw"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=ss"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/ss"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=se"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/se"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=sw"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/sw"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=ee"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/ee"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+     write("<input ID=ww"+dudenr+" type='image' WIDTH=30 HEIGHT=30 SRC='images/ww"+team+".gif' STYLE='position:absolute; top:-50px;left:0px'>")
+    }
+ }
+function hidedudepics(){
+  	for (d=1;d<=maxdude*2;d++){
+	     document.getElementById("nn"+d).style.top = -50
+	     document.getElementById("ne"+d).style.top = -50
+	     document.getElementById("nw"+d).style.top = -50
+	     document.getElementById("se"+d).style.top = -50
+	     document.getElementById("sw"+d).style.top = -50
+	     document.getElementById("ss"+d).style.top = -50
+	     document.getElementById("ee"+d).style.top = -50
+	     document.getElementById("ww"+d).style.top = -50
+	}
+}
+
+function init(){
+  systm=""
+  ver=navigator.appVersion
+  len=ver.length
+  for(iln=0;iln<len;iln++) if(ver.charAt(iln)=="(") break
+  systm = ver.charAt(iln+1).toUpperCase()
+
+  document.onkeydown = keyDown
+  if (systm!="C"){
+   document.captureEvents(Event.KEYDOWN|Event.KEYUP) 
+  }
+  document.foot.help.value="          Blue: faster=a slower=f left=s right=d  power=w  turnaround=e          Red:  faster=l slower=' left=ö right=ä  power=p  turnaround=å" 
+  hidedudepics();
+  lastdude=parseInt(document.foot.lastdude.options[document.foot.lastdude.selectedIndex].value)
+  startgame(1)
+}
+function initball(ball,x,y){
+	ball.x=x
+	ball.y=y
+	ball.dx=0
+	ball.dy=0
+	ball.ddx=.95
+	ball.ddy=.95
+
+
+}
+function initdude(dude,lx,ly,lfoot,dx,dy){
+        dude.lx = lx
+        dude.ly = ly
+        dude.lfoot = lfoot
+        dude.speed = 1
+        dude.dx=dx
+        dude.dy=dy
+	  dude.timer=0
+}
+
+function initdudes(clear){
+        if (clear==1){
+	     g1=0
+           g2=0
+	     for (d=0;d<lastdude;d++){
+		     dude[1+d]=new dudeObject(1,10+d)
+      	     dude[lastdude+1+d]=new dudeObject(2,10+lastdude+d)
+	     }
+	     team[1]=new teamObject(0)
+	     team[2]=new teamObject(0)
+	  } else {
+           g1=team[1].goals
+           g2=team[2].goals
+	  }
+	  team[1].goals=g1
+	  team[2].goals=g2
+        switch(lastdude){
+        case 1:
+      	  initdude(dude[1],(bheight + 1) / 2,(bwidth + 1) / 2 - 9,"ee1",0,1)
+	        initdude(dude[2],dude[1].lx,bwidth - dude[1].ly+1,"ww5",0,-1)
+        	  break
+	  case 2:
+	        initdude(dude[1],(bheight + 1) / 2+3,(bwidth + 1) / 2 - 9,"ee1",0,1)
+	        initdude(dude[2],(bheight + 1) / 2-3,(bwidth + 1) / 2 - 9,"ee2",0,1)
+	        initdude(dude[3],dude[1].lx,bwidth - dude[1].ly+1,"ww5",0,-1)
+	        initdude(dude[4],dude[2].lx,bwidth - dude[2].ly+1,"ww6",0,-1)
+	  	  break
+	  case 3:
+	        initdude(dude[1],(bheight + 1) / 2+4,(bwidth + 1) / 2 - 9,"ee1",0,1)
+	        initdude(dude[2],(bheight + 1) / 2-4,(bwidth + 1) / 2 - 9,"ee2",0,1)
+	        initdude(dude[3],(bheight + 1) / 2,(bwidth + 1) / 2 - 15,"ee3",0,1)
+	        initdude(dude[4],dude[1].lx,bwidth - dude[1].ly+1,"ww5",0,-1)
+	        initdude(dude[5],dude[2].lx,bwidth - dude[2].ly+1,"ww6",0,-1)
+	        initdude(dude[6],dude[3].lx,bwidth - dude[3].ly+1,"ww7",0,-1)
+	  	  break
+	  case 4:
+	        initdude(dude[1],(bheight + 1) / 2+4,(bwidth + 1) / 2 - 9,"ee1",0,1)
+	        initdude(dude[2],(bheight + 1) / 2-4,(bwidth + 1) / 2 - 16,"ee2",0,1)
+	        initdude(dude[3],(bheight + 1) / 2-4,(bwidth + 1) / 2 - 9,"ee3",0,1)
+	        initdude(dude[4],(bheight + 1) / 2+4,(bwidth + 1) / 2 - 16,"ee4",0,1)
+	        initdude(dude[5],dude[1].lx,bwidth - dude[1].ly+1,"ww5",0,-1)
+	        initdude(dude[6],dude[2].lx,bwidth - dude[2].ly+1,"ww6",0,-1)
+	        initdude(dude[7],dude[3].lx,bwidth - dude[3].ly+1,"ww7",0,-1)
+	        initdude(dude[8],dude[4].lx,bwidth - dude[4].ly+1,"ww8",0,-1)
+	  	  break
+	  }
+	  if (maxdude==0){
+		  for (d=0;d<lastdude;d++){
+		        initdude(dude[1+d],d+(bheight + 1) / 2+3,(bwidth + 1) / 2 - 9,"ee"+(1+d),0,1)
+		        initdude(dude[lastdude+1+d],dude[1+d].lx,bwidth - dude[1+d].ly+1,"ww"+(maxdude+1+d),0,-1)
+		  }
+	  }
+	  for (d=0;d<lastdude;d++){
+	        drawdude(1+d)
+      	  drawdude(lastdude+1+d)
+	  }
+}
+function keyDown(DnEvents){
+  if (systm != "C"){
+   k=DnEvents.which
+  }else{
+   k=window.event.keyCode
+  }
+      putplace(parseInt(ball.x), parseInt(ball.y), cball, idball)
+        switch(k){
+        case t1:
+		    for (d=0;d<lastdude;d++){
+			    turnaround(1+d)
+		    }
+		    break
+        case t2:
+		    for (d=0;d<lastdude;d++){
+			    turnaround(lastdude+1+d)
+		    }
+	          break
+        case rr1:
+		    for (d=0;d<lastdude;d++){
+			dude[1+d].speed=dude[1+d].speed-.3
+                }
+	          break
+        case rr2:
+		    for (d=0;d<lastdude;d++){
+			dude[lastdude+1+d].speed=dude[lastdude+1+d].speed-.3
+                }
+	          break
+        case ll1:
+		    for (d=0;d<lastdude;d++){
+			    if (dude[1+d].timer==0) {
+				dude[1+d].timer=1
+				movedude(1+d)
+			    } else {
+				dude[1+d].speed=dude[1+d].speed+.3
+	                }
+		    }
+	          break
+        case l1:
+		    for (d=0;d<lastdude;d++){
+	                movedir(1+d,left)
+		    }
+		    break
+        case r1:
+		    for (d=0;d<lastdude;d++){
+	                movedir(1+d,right)
+		    }
+		    break
+        case ll2:
+		    for (d=0;d<lastdude;d++){
+			    if (dude[lastdude+1+d].timer==0) {
+				dude[lastdude+1+d].timer=1
+				movedude(lastdude+1+d)
+			    } else {
+				dude[lastdude+1+d].speed=dude[lastdude+1+d].speed+.3
+			    }
+		    }
+		    break
+        case l2:
+		    for (d=0;d<lastdude;d++){
+	                movedir(lastdude+1+d,left)
+		    }
+	          break
+        case r2:
+		    for (d=0;d<lastdude;d++){
+	                movedir(lastdude+1+d,right)
+		    }
+	          break
+        case p1:
+                switchpow(1)
+	          break
+        case p2:
+                switchpow(2)
+	          break
+        }
+
+ }
+function kickball(footx , footy , dudenr ){
+   ball.dx = team[dude[dudenr].team].power * 0.19 * (ball.x-footx)/Math.sqrt((ball.x-footx)*(ball.x-footx)+(ball.y-footy)*(ball.y-footy))
+   ball.dy = team[dude[dudenr].team].power * 0.19 * (ball.y-footy)/Math.sqrt((ball.x-footx)*(ball.x-footx)+(ball.y-footy)*(ball.y-footy))
+
+   ball.dude = dude[dudenr].id
+   moveball()
+}
+
+function makedudepics(){
+	  for (d=0;d<maxdude;d++){
+		  dudepics(1+d,1)
+		  dudepics(maxdude+1+d,2)
+	  }
+}
+function move(dudenr , movefoot, movetype){
+
+        oldmx = dude[dudenr].lx
+        oldmy = dude[dudenr].ly
+	  if (dude[dudenr].dx==0 || dude[dudenr].dy==0) {
+		  mx=dude[dudenr].lx+dude[dudenr].dx*0.28*dude[dudenr].speed
+		  my=dude[dudenr].ly+dude[dudenr].dy*0.28*dude[dudenr].speed
+        } else {
+		  mx=dude[dudenr].lx+dude[dudenr].dx*0.2*dude[dudenr].speed
+		  my=dude[dudenr].ly+dude[dudenr].dy*0.2*dude[dudenr].speed
+        }
+        mxi=parseInt(mx)
+        myi=parseInt(my)
+
+        dist = Math.sqrt((ball.x-mx)*(ball.x-mx)+(ball.y-my)*(ball.y-my))
+	  if (dist<2){
+		kickball(oldmx, oldmy, dudenr)
+        }
+       
+        if (mxi <= 2 || myi <= 2 || myi >= bwidth-1 || mxi >= bheight-1) {
+            return;
+        }
+        if (board[mxi][myi].id != idempty && board[mxi][myi].id != idball && board[mxi][myi].id != dude[dudenr].id){
+                return
+        }
+        putplace(parseInt(oldmx), parseInt(oldmy), cempty, idempty)
+        dude[dudenr].lx = mx
+        dude[dudenr].ly = my
+        putplace(mxi, myi, dude[dudenr].lfoot, dude[dudenr].id)
+
+        putdude(mx, my, dude[dudenr].lfoot, dude[dudenr].id)
+}
+
+function moveball(){
+        if(Math.abs(ball.dx) <= 0.01 && Math.abs(ball.dy) <= 0.01){ 
+           ball.dx = 0
+           ball.dy = 0
+          ball.dude = 0
+	    clearTimeout(timerId)
+          return
+	 }
+        oldx = parseInt(ball.x)
+        oldy = parseInt(ball.y)
+        
+        ball.x = ball.x + ball.dx
+        ball.y = ball.y + ball.dy
+        x = ball.x
+        y = ball.y
+        xi = parseInt(x)
+        yi = parseInt(y)
+        switch(board[xi][yi].id){
+        case idedge:
+               if (x < 3) {
+	 		x = 3
+			xi=x
+                  ball.dx = -ball.dx
+               }
+               if (x > bheight - 2) {
+			 x = bheight - 2
+			 xi=x
+                   ball.dx = -ball.dx
+               }
+               if (y > bwidth - 2) {
+			y = bwidth - 2
+			yi=y
+                  ball.dy = -ball.dy
+               }
+               if (y < 3) {
+			y = 3
+			yi=y
+                  ball.dy = -ball.dy
+               }
+               ball.x = x
+               ball.y = y
+               ball.dude = 0
+		   break
+        case idgoal1:
+              ball.dx = 0
+              ball.dy = 0
+              ball.dude = 0
+              showgoal(1)
+	        clearTimeout(timerId)
+              return
+        case idgoal2:
+              ball.dx = 0
+              ball.dy = 0
+              ball.dude = 0
+		  clearTimeout(timerId)
+              showgoal(2)
+              return
+
+        case idempty:
+			break
+        case idball:
+			break
+        default:
+           if (board[xi][yi].id != ball.dude){
+               ball.dx = 0
+               ball.dy = 0
+               ball.dude = 0
+	    	   clearTimeout(timerId)
+               return
+            }
+        }
+        ball.dx = ball.dx * ball.ddx
+        ball.dy = ball.dy * ball.ddy
+        if (board[oldx][oldy].id == idball)
+  		putplace(oldx, oldy, cempty, idempty)
+        
+        putplace(xi, yi, cball, idball)
+        putball(x, y, cball, idball)
+	  timerId=setTimeout("moveball()",10)
+}
+
+
+function movedir(dudenr,dir){
+      
+	with(dude[dudenr]){
+	  switch(dir){
+        	case right:
+                switch(dx){
+                case 0:
+                        switch(dy){
+                        case 0:
+                        case 1:
+                              dx= 1
+					dy= 1
+                              dudepic(dudenr,"se")
+					break
+                        case -1:
+                              dx= -1
+					dy= -1
+                              dudepic(dudenr,"nw")
+					break
+                        }
+				break
+                case 1:
+                        switch(dy){
+                        case 0:
+                              dx = 1
+					dy = -1
+                              dudepic(dudenr,"sw")
+					break
+                        case 1:
+                              dx= 1
+					dy= 0
+                              dudepic(dudenr,"ss")
+					break
+                        case -1:
+					dx=0
+                              dy=-1
+                              dudepic(dudenr,"ww")
+					break
+                        }
+				break
+                case -1:
+                        switch(dy){
+                        case 0:
+                              dy=1
+					dx=-1
+                              dudepic(dudenr,"ne")
+					break
+                        case 1:
+					dx=0
+                              dy=1
+                              dudepic(dudenr,"ee")
+					break
+                        case -1:
+                              dx=-1
+					dy=0
+                              dudepic(dudenr,"nn")
+					break
+                        }
+                }
+	          break	
+        case left:
+                switch(dx){
+                case 0:
+                        switch(dy){
+                        case 0:
+                        case 1:
+                                dx=-1
+	      			  dy=1
+                              dudepic(dudenr,"ne")
+					  break
+                        case -1:
+                                dx=1
+				        dy=-1
+                              dudepic(dudenr,"sw")
+					  break
+                        }
+				break
+                case 1:
+                        switch(dy){
+                        case 0:
+                              dx=1
+					dy=1
+                              dudepic(dudenr,"se")
+                  	      break
+	        		case 1:
+                              dx=0
+					dy=1
+                              dudepic(dudenr,"ee")
+				      break
+                        case -1:
+                              dx=1
+			    		dy=0
+                              dudepic(dudenr,"ss")
+					break
+                        }
+		    		break
+                case -1:
+                        switch(dy){
+                        case 0:
+                              dx=-1
+					dy=-1
+                              dudepic(dudenr,"nw")
+	        			break
+                        case 1:
+                              dx=-1
+				      dy=0
+                              dudepic(dudenr,"nn")
+					break
+                        case -1:
+                              dx=0
+					dy=-1
+                              dudepic(dudenr,"ww")
+				      break
+                        }
+				break
+                }
+        }
+}
+}
+function movedude(dudenr){
+      if (dude[dudenr].timer==0){
+		clearTimeout(timer[dudenr])
+		return
+	}
+	move(dudenr,left,1)
+	timer[dudenr]=setTimeout("movedude("+dudenr+")",50)
+}
+function putdude(x , y , mark, id ){
+	document.getElementById(mark).style.top = x*10.94-35
+	document.getElementById(mark).style.left = y*10.64-32
+}
+function putball_ORIG(x , y , mark, id ){
+	document.getElementById(mark).style.top = x*10.94-27
+	document.getElementById(mark).style.left = y*10.64-25
+}
+function putball(x , y , mark, id ){
+	if (gmark==""){
+		gmark=1
+	} else {
+		smark=mark+gmark
+		document.getElementById(smark).style.top = -50
+		document.getElementById(smark).style.left = -50
+		if (ball.dx > 0) {
+			gmark=gmark-1
+		} else {
+			gmark=gmark+1
+		}
+		if (gmark==10){
+			gmark=1
+		}
+		if (gmark==0){
+		     gmark=9
+		}
+	}
+	smark=mark+gmark
+	document.getElementById(smark).style.top = x*10.94-27
+	document.getElementById(smark).style.left = y*10.64-25
+}
+
+function putplace(x , y , mark, id ){
+//        if (x <= 2 || y <= 2 || y >= bwidth-1 || x >= bheight-1) return
+          
+	board[x][y].id = id
+}
+function showgoal (teamnr){
+   if (teamnr==1){
+	   window.alert("Red team made a goal! Press OK ...")
+   } else {
+	   window.alert("Blue team made a goal! Press OK ...")
+   }
+   team[teamnr].goals = team[teamnr].goals + 1
+   for (d=0;d<lastdude;d++){
+	   // Move pics out of screen
+	   putdude(-50,-50, dude[1+d].lfoot, dude[1+d].id)
+	   putdude(-50,-50, dude[lastdude+1+d].lfoot, dude[lastdude+1+d].id)
+	   // Stop moving players
+	   dude[1+d].timer=0
+	   dude[lastdude+1+d].timer=0
+   }
+
+   startgame(0)
+}
+
+function showpowers(){
+	document.foot.power1.value = "Power: "+team[1].power
+	document.foot.power2.value = "Power: "+team[2].power
+}
+
+function startgame(clear){
+        for (j = 1;j<bheight;j++){
+	  	  if (clear==1){
+	  		 board[j]=new Array()
+              }
+	        for (i = 1;i<bwidth;i++) {
+                if (clear!=1){
+	                board[j][i].id=idempty
+                } else {
+	                board[j][i] = new boardCell(idempty)
+                }
+	     	  }
+        }
+        initdudes(clear)
+        if (clear==1){
+	        ball = new ballObject()
+        }
+        initball(ball,(bheight + 1) / 2+Math.random()/10,(bwidth + 1) / 2+Math.random()/10)
+        putplace(parseInt(ball.x), parseInt(ball.y), cball, idball)
+        putball(ball.x, ball.y, cball, idball)
+        showpowers()
+        drawfield()
+}
+function switchpow(dudenr){
+  switch(team[dudenr].power){
+	case 1:
+		team[dudenr].power = 2
+		break	
+	case 2:
+		team[dudenr].power = 4
+		break
+	case 4:
+		team[dudenr].power = 1
+		break
+  }
+  showpowers()
+}
+
+function teamObject(goals){
+        this.goals = goals 
+	  this.power=2
+}
+
+
+
+function turnaround(dudenr){
+	movedir(dudenr,left)
+	movedir(dudenr,left)
+	movedir(dudenr,left)
+	movedir(dudenr,left)
+}
+
+ //-->
+ </SCRIPT>
+
+<BODY BGCOLOR="#00003F" TEXT="#FFFFFF" ONLOAD="init()">
+<form name="foot">
+<INPUT id="power1" TYPE=TEXT STYLE="position:absolute; top:610px;left:8px" MAXLENGTH=10 SIZE=10 NAME="power1">
+<INPUT id="power2" TYPE=TEXT STYLE="position:absolute; top:610px;left:700px" MAXLENGTH=10 SIZE=10 NAME="power2">
+<INPUT id="goals" TYPE=TEXT STYLE="position:absolute; top:610px;left:370px" MAXLENGTH=10 SIZE=10 NAME="goals">
+<input ID="field" type="image" STYLE="position:absolute; top:8px;left:8px" width=800 height=600 src="images/field.gif" border="0" >
+<input ID="O1" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball1.gif" border="0">
+<input ID="O2" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball2.gif" border="0">
+<input ID="O3" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball3.gif" border="0">
+<input ID="O4" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball4.gif" border="0">
+<input ID="O5" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball5.gif" border="0">
+<input ID="O6" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball6.gif" border="0">
+<input ID="O7" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball7.gif" border="0">
+<input ID="O8" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball8.gif" border="0">
+<input ID="O9" type="image" STYLE="position:absolute; top:-50px;left:0px" width=16 height=16 src="images/ball9.gif" border="0">
+<textarea STYLE="position:absolute; top:30px;left:830px" name=help cols=13 rows=17 wrap=virtual></textarea>
+<script>
+	makedudepics();
+	s='<SELECT name=lastdude STYLE="position:absolute; top:5px;left:830px" OnChange="init()" >'
+	for (i=1;i<=4;i++){
+		if (i==2){
+		s=s+'<OPTION selected value='+i+'>'+i+' dudes'
+		} else {
+		s=s+'<OPTION value='+i+'>'+i+' dudes'
+		}
+	}
+	s=s+'</OPTION>'
+	s=s+'</SELECT>'
+	document.write(s);
+</script>
+</form>
+</BODY>
+</HTML>

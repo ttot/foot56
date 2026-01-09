@@ -20,8 +20,8 @@ var cempty = " "
 var idempty = 0
 // a=65,s=83,d=68,f=70
 // w=87 e=69
-// l=76, ö=192 ä=222 '=191
-// p=80 å=221
+// l=76, Ã¶=192 Ã¤=222 '=191
+// p=80 Ã¥=221
 var l1 = 83
 var r1 = 68
 var t1 = 69
@@ -131,7 +131,7 @@ function init(){
   if (systm!="C"){
    document.captureEvents(Event.KEYDOWN|Event.KEYUP) 
   }
-  document.foot.help.value="          Blue: faster=a slower=f left=s right=d  power=w  turnaround=e          Red:  faster=l slower=' left=ö right=ä  power=p  turnaround=å" 
+  document.foot.help.value="          Blue: faster=a slower=f left=s right=d  power=w  turnaround=e          Red:  faster=l slower=' left=&ouml; right=Ã¤  power=p  turnaround=&aring;" 
   hidedudepics();
   lastdude=parseInt(document.foot.lastdude.options[document.foot.lastdude.selectedIndex].value)
   startgame(1)
@@ -695,3 +695,4 @@ function turnaround(dudenr){
 </form>
 </BODY>
 </HTML>
+

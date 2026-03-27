@@ -20,13 +20,13 @@
       padding: 0;             /* ei reunoja */
     }
 
-    img {
-      max-width: 100%;
-      height: auto;
-    }
 * {
   box-sizing: border-box;
 }
+* {
+  max-width: 100% !important;
+}
+
 
 html, body {
   margin: 0;
@@ -41,6 +41,7 @@ body {
 div {
   font-size: 30px;
   width: 100%;        /* TÄRKEÄ */
+  display: block;
 }
 
 img {
@@ -55,9 +56,6 @@ body {
 </head>
 
 <body>
-  <div class="container">
-    <p>Testiteksti laidasta laitaan</p>
-  </div>
 </body>
 </html>
 
